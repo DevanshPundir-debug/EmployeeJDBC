@@ -47,6 +47,23 @@ public class Main {
         return rs;
     }
 
+
+
+    public static ResultSet selectEmployeeById(int empNo) throws SQLException {
+
+        String sqlQuery = String.format(
+                """
+                SELECT *
+                FROM employees
+                WHERE emp_no = %d;
+                """, empNo
+        );
+
+        return stmt.executeQuery(sqlQuery);
+    }
+
+
+
     public static void insertEmployee() throws SQLException {
         String sqlQuery =
                 """
@@ -123,7 +140,10 @@ public class Main {
 
             deleteEmployee();   // fir vo delete ho jaega
 
-            ResultSet rs = selectEmployees();
+            int empNo = 10005;
+
+            ResultSet rs = selectEmployeeById(empNo);
+//            ResultSet rs = selectEmployees();
 
             List<Employee> employees = new ArrayList<>(); // bina list ke lie mereko har employee ke lie ek new object
                                                           // banana pad raha tha
@@ -140,9 +160,9 @@ public class Main {
                 employees.add(emp);
             }
 
-//            for (Employee emp : employees) {
-//                System.out.println(emp.getEmpNo() + " " + emp.getFirstName());
-//            }
+            for (Employee emp : employees) {
+                System.out.println(emp.getEmpNo() + " " + emp.getFirstName());
+            }
 
 
 //            ResultSet rs = stmt.executeQuery(
@@ -152,17 +172,17 @@ public class Main {
 //            ); // YAHA MERE RESULT SET MAI JO QUERY KA REPLY AAEGA SQL SE VO STORE HO JAEGA
 
 
-//            System.out.println(employees.size());
+            System.out.println(employees.size());
 
 
-//            try {
-//                ObjectMapper mapper = new ObjectMapper();
-//                String json = mapper.writerWithDefaultPrettyPrinter()
-//                        .writeValueAsString(employees);
-//                System.out.println(json);
-//            } catch (JsonProcessingException e) {
-//                throw new RuntimeException(e);
-//            }
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                String json = mapper.writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(employees);
+                System.out.println(json);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
 
 //ResultSet temporary hai. Jaise hi:
 //con.close();
