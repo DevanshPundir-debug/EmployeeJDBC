@@ -36,28 +36,15 @@ public class Main {
 
     }
 
-    public static List<Employee> selectEmployees() throws SQLException {
+    public static ResultSet selectEmployees() throws SQLException {
+        String sqlQuery =
+                """
+                SELECT * FROM employees LIMIT 5;
+                """;
 
-        ResultSet rs = stmt.executeQuery(
-                "SELECT * FROM employees LIMIT 5"
-        );
+        ResultSet rs = stmt.executeQuery(sqlQuery);
 
-        List<Employee> employees = new ArrayList<>(); // bina list ke lie mereko har employee ke lie ek new object
-                                                      // banana pad raha tha
-        while (rs.next()) {
-
-            Employee emp = new Employee();
-
-            emp.setEmpNo(rs.getInt("emp_no"));
-            emp.setFirstName(rs.getString("first_name"));
-            emp.setLastName(rs.getString("last_name"));
-            emp.setGender(rs.getString("gender"));
-            emp.setHireDate(rs.getDate("hire_date"));
-
-            employees.add(emp);
-        }
-
-        return employees;
+        return rs;
     }
 
     public static void insertEmployee() throws SQLException {
@@ -128,6 +115,7 @@ public class Main {
 //            // user and pass ye hai , and connection build ho jae toh ek con object return kr dena
 //
 //            Statement stmt = con.createStatement(); //con  yaha ek statement object bana do
+            selectEmployees();
 
             insertEmployee();   // pehle naya employee (500001) insert hoga
 
@@ -135,52 +123,46 @@ public class Main {
 
             deleteEmployee();   // fir vo delete ho jaega
 
-            List<Employee> employees = selectEmployees();
+            ResultSet rs = selectEmployees();
 
-            for (Employee emp : employees) {
-                System.out.println(emp.getEmpNo() + " " + emp.getFirstName());
+            List<Employee> employees = new ArrayList<>(); // bina list ke lie mereko har employee ke lie ek new object
+                                                          // banana pad raha tha
+            while (rs.next()) {
+
+                Employee emp = new Employee();
+
+                emp.setEmpNo(rs.getInt("emp_no"));
+                emp.setFirstName(rs.getString("first_name"));
+                emp.setLastName(rs.getString("last_name"));
+                emp.setGender(rs.getString("gender"));
+                emp.setHireDate(rs.getDate("hire_date"));
+
+                employees.add(emp);
             }
+
+//            for (Employee emp : employees) {
+//                System.out.println(emp.getEmpNo() + " " + emp.getFirstName());
+//            }
 
 
 //            ResultSet rs = stmt.executeQuery(
 //                    "SELECT * FROM employees LIMIT 5"
-//                   " SELECT first_name, \n" +
-//                    "COUNT(*) \n" +
-//                     " FROM employees \n"+
-//                        "GROUP BY first_name \n"+
-//                     "HAVING COUNT(*) > 10000;"
-//                    "SELECT e.first_name \n,"+
-//                    "e.last_name, \n"+
-//                    "s.salary \n "+
-//                    "FROM employees e \n "+
-//                    "JOIN salaries s \n "+
-//                    "ON e.emp_no = s.emp_no \n "+
-//                    "WHERE s.salary > 10000 \n ;"
-//                    "SELECT *"+
-//                            "FROM salaries"+
-//                    "WHERE salary > 10000;"
-
-//                    "SELECT *\n" +
-//                            "first_name,\n" +
-//                            "COUNT(*)\n" +
-//                            "FROM employees\n" +
-//                            "GROUP BY name\n" +
-//                            "HAVING COUNT(*) > 10000;"
+//
 
 //            ); // YAHA MERE RESULT SET MAI JO QUERY KA REPLY AAEGA SQL SE VO STORE HO JAEGA
 
 
-            System.out.println(employees.size());
+//            System.out.println(employees.size());
 
 
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                String json = mapper.writerWithDefaultPrettyPrinter()
-                        .writeValueAsString(employees);
-                System.out.println(json);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
+//            try {
+//                ObjectMapper mapper = new ObjectMapper();
+//                String json = mapper.writerWithDefaultPrettyPrinter()
+//                        .writeValueAsString(employees);
+//                System.out.println(json);
+//            } catch (JsonProcessingException e) {
+//                throw new RuntimeException(e);
+//            }
 
 //ResultSet temporary hai. Jaise hi:
 //con.close();
