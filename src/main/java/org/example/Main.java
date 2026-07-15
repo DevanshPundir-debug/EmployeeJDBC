@@ -63,8 +63,41 @@ public class Main {
     }
 
 
+    public static void deleteEmployee() throws SQLException {
+        String sqlQuery =
+                """
+                DELETE FROM employees
+                WHERE emp_no = 500001;
+                """;
 
-    public static void insertEmployee() throws SQLException {
+        int rows = stmt.executeUpdate(sqlQuery);
+
+        System.out.println(rows);
+    }
+
+
+
+    public static void deleteEmployee(
+            int empNo
+    ) throws SQLException {
+
+        String sqlQuery = String.format(
+                """
+                DELETE FROM employees
+                WHERE emp_no = %d;
+                """,
+                empNo
+        );
+
+        int rows = stmt.executeUpdate(sqlQuery);
+
+        System.out.println(rows);
+    }
+
+
+
+
+    public static void insertEmployeeByData() throws SQLException {
         String sqlQuery =
                 """
                 INSERT INTO employees
@@ -94,6 +127,57 @@ public class Main {
     }
 
 
+
+
+
+
+    public static void insertEmployeeByData(
+            int empNo,
+            String birthDate,
+            String firstName,
+            String lastName,
+            String gender
+    ) throws SQLException {
+
+        String sqlQuery = String.format(
+                """
+                INSERT INTO employees
+                (
+                    emp_no,
+                    birth_date,
+                    first_name,
+                    last_name,
+                    gender,
+                    hire_date
+                )
+                VALUES
+                (
+                    %d,
+                    '%s',
+                    '%s',
+                    '%s',
+                    '%s',
+                    CURDATE()
+                );
+                """,
+                empNo,
+                birthDate,
+                firstName,
+                lastName,
+                gender
+        );
+
+        int rows = stmt.executeUpdate(sqlQuery);
+
+        System.out.println(rows);
+    }
+
+
+
+
+
+
+
     public static void updateEmployee() throws SQLException {
         String sqlQuery =
                 """
@@ -109,17 +193,36 @@ public class Main {
     }
 
 
-    public static void deleteEmployee() throws SQLException {
-        String sqlQuery =
+
+    public static void updateEmployee(
+            int empNo,
+            String firstName
+    ) throws SQLException {
+
+        String sqlQuery = String.format(
                 """
-                DELETE FROM employees
-                WHERE emp_no = 500001;
-                """;
+                UPDATE employees
+                SET first_name = '%s'
+                WHERE emp_no = %d;
+                """,
+                firstName,
+                empNo
+        );
 
         int rows = stmt.executeUpdate(sqlQuery);
 
         System.out.println(rows);
     }
+
+
+
+
+
+
+
+
+
+
 
 
     public static void main(String[] args) {
@@ -134,13 +237,15 @@ public class Main {
 //            Statement stmt = con.createStatement(); //con  yaha ek statement object bana do
             selectEmployees();
 
-            insertEmployee();   // pehle naya employee (500001) insert hoga
+            insertEmployeeByData();   // pehle naya employee (500001) insert hoga
 
             updateEmployee();   // fir uska first_name 'DEV' ho jaega
 
             deleteEmployee();   // fir vo delete ho jaega
 
             int empNo = 10005;
+
+            insertEmployeeByData(500099,"2005-12-01","Deva","Mittal","M" );
 
             ResultSet rs = selectEmployeeById(empNo);
 //            ResultSet rs = selectEmployees();
@@ -153,6 +258,8 @@ public class Main {
 
                 emp.setEmpNo(rs.getInt("emp_no"));
                 emp.setFirstName(rs.getString("first_name"));
+
+
                 emp.setLastName(rs.getString("last_name"));
                 emp.setGender(rs.getString("gender"));
                 emp.setHireDate(rs.getDate("hire_date"));
