@@ -1,314 +1,75 @@
 package org.example;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.gson.Gson;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.LinkedHashMap;
 
 public class Main {
 
-    static String url = "jdbc:mysql://localhost:3306/employees"; // database ka url represent kregi baad m
-    static String username = "root";
-    static String password = "newpassword123";
 
-    static Connection con;
-    static Statement stmt;
+    // GET ALL EMPLOYEES
+    public static String getEmployeesAsJson() throws Exception {
 
-    // field pe direct getConnection nahi likh sakte kyunki SQLException checked hai,
-    // isliye static block mein try/catch ke saath initialize karna padta hai
-    static {
-        try {
-            con = DriverManager.getConnection(url, username, password);
-            // ye line kehri hai deivermanager ek connection build kro url ye hai url se db ka address mila
-            // user and pass ye hai , and connection build ho jae toh ek con object return kr dena
-
-            stmt = con.createStatement(); //con  yaha ek statement object bana do
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        String query = QueryBuilder.buildSelectAllQuery("employees");
+        System.out.println("Select Query: " + query);
+        return DBHandler.getEmployees(query);
     }
 
-    public static String getEmployeesAsJson() {
+    // INSERT
+    public static String insertEmployee(String json) throws Exception {
 
-        return "Coming Soon";
+        Gson gson = new Gson();
 
+        LinkedHashMap<String, Object> map =
+                gson.fromJson(json, LinkedHashMap.class);
+
+        System.out.println("Received JSON:");
+        System.out.println(map);
+
+        String query =
+                QueryBuilder.buildInsertQuery("employees", map);
+
+        System.out.println("Insert Query: " + query);
+
+        return DBHandler.insertEmployee(query);
     }
 
-    public static ResultSet selectEmployees() throws SQLException {
-        String sqlQuery =
-                """
-                SELECT * FROM employees LIMIT 5;
-                """;
+    // UPDATE
+    public static String updateEmployee(String json, int empNo) throws Exception {
 
-        ResultSet rs = stmt.executeQuery(sqlQuery);
+        Gson gson = new Gson();
 
-        return rs;
-    }
+        LinkedHashMap<String, Object> map =
+                gson.fromJson(json, LinkedHashMap.class);
 
+        System.out.println("Received JSON:");
+        System.out.println(map);
 
-
-    public static ResultSet selectEmployeeById(int empNo) throws SQLException {
-
-        String sqlQuery = String.format(
-                """
-                SELECT *
-                FROM employees
-                WHERE emp_no = %d;
-                """, empNo
-        );
-
-        return stmt.executeQuery(sqlQuery);
-    }
-
-
-    public static void deleteEmployee() throws SQLException {
-        String sqlQuery =
-                """
-                DELETE FROM employees
-                WHERE emp_no = 500001;
-                """;
-
-        int rows = stmt.executeUpdate(sqlQuery);
-
-        System.out.println(rows);
-    }
-
-
-
-    public static void deleteEmployee(
-            int empNo
-    ) throws SQLException {
-
-        String sqlQuery = String.format(
-                """
-                DELETE FROM employees
-                WHERE emp_no = %d;
-                """,
-                empNo
-        );
-
-        int rows = stmt.executeUpdate(sqlQuery);
-
-        System.out.println(rows);
-    }
-
-
-
-
-    public static void insertEmployeeByData() throws SQLException {
-        String sqlQuery =
-                """
-                INSERT INTO employees
-                (
-                    emp_no,
-                    birth_date,
-                    first_name,
-                    last_name,
-                    gender,
-                    hire_date
-                )
-                VALUES
-                (
-                    500001,
-                    '2004-01-01',
-                    'Devansh',
-                    'Pundir',
-                    'M',
-                    CURDATE()
+        String query =
+                QueryBuilder.buildUpdateQuery(
+                        "employees",
+                        map,
+                        "emp_no",
+                        empNo
                 );
-                """;
 
-        int insertEmp = stmt.executeUpdate(sqlQuery);
+        System.out.println("Update Query: " + query);
 
-        System.out.println(insertEmp);
-
+        return DBHandler.updateEmployee(query);
     }
 
+    // DELETE
+    public static String deleteEmployee(int empNo) throws Exception {
 
-
-
-
-
-    public static void insertEmployeeByData(
-            int empNo,
-            String birthDate,
-            String firstName,
-            String lastName,
-            String gender
-    ) throws SQLException {
-
-        String sqlQuery = String.format(
-                """
-                INSERT INTO employees
-                (
-                    emp_no,
-                    birth_date,
-                    first_name,
-                    last_name,
-                    gender,
-                    hire_date
-                )
-                VALUES
-                (
-                    %d,
-                    '%s',
-                    '%s',
-                    '%s',
-                    '%s',
-                    CURDATE()
+        String query =
+                QueryBuilder.buildDeleteQuery(
+                        "employees",
+                        "emp_no",
+                        empNo
                 );
-                """,
-                empNo,
-                birthDate,
-                firstName,
-                lastName,
-                gender
-        );
 
-        int rows = stmt.executeUpdate(sqlQuery);
+        System.out.println("Delete Query: " + query);
 
-        System.out.println(rows);
-    }
-
-
-
-
-
-
-
-    public static void updateEmployee() throws SQLException {
-        String sqlQuery =
-                """
-                UPDATE employees
-                SET first_name = 'DEV'
-                WHERE emp_no = 500001;
-                """;
-
-        int rows = stmt.executeUpdate(sqlQuery);
-
-        System.out.println(rows);
-
-    }
-
-
-
-    public static void updateEmployee(
-            int empNo,
-            String firstName
-    ) throws SQLException {
-
-        String sqlQuery = String.format(
-                """
-                UPDATE employees
-                SET first_name = '%s'
-                WHERE emp_no = %d;
-                """,
-                firstName,
-                empNo
-        );
-
-        int rows = stmt.executeUpdate(sqlQuery);
-
-        System.out.println(rows);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-    public static void main(String[] args) {
-//        String url = "jdbc:mysql://localhost:3306/employees"; // database ka url represent kregi baad m
-//        String username = "root";
-//        String password = "newpassword123";
-        try {
-//            Connection con = DriverManager.getConnection(url, username, password);
-//            // ye line kehri hai deivermanager ek connection build kro url ye hai url se db ka address mila
-//            // user and pass ye hai , and connection build ho jae toh ek con object return kr dena
-//
-//            Statement stmt = con.createStatement(); //con  yaha ek statement object bana do
-            selectEmployees();
-
-            insertEmployeeByData();   // pehle naya employee (500001) insert hoga
-
-            updateEmployee();   // fir uska first_name 'DEV' ho jaega
-
-            deleteEmployee();   // fir vo delete ho jaega
-
-            int empNo = 10005;
-
-            insertEmployeeByData(500099,"2005-12-01","Deva","Mittal","M" );
-
-            ResultSet rs = selectEmployeeById(empNo);
-//            ResultSet rs = selectEmployees();
-
-            List<Employee> employees = new ArrayList<>(); // bina list ke lie mereko har employee ke lie ek new object
-                                                          // banana pad raha tha
-            while (rs.next()) {
-
-                Employee emp = new Employee();
-
-                emp.setEmpNo(rs.getInt("emp_no"));
-                emp.setFirstName(rs.getString("first_name"));
-
-
-                emp.setLastName(rs.getString("last_name"));
-                emp.setGender(rs.getString("gender"));
-                emp.setHireDate(rs.getDate("hire_date"));
-
-                employees.add(emp);
-            }
-
-            for (Employee emp : employees) {
-                System.out.println(emp.getEmpNo() + " " + emp.getFirstName());
-            }
-
-
-//            ResultSet rs = stmt.executeQuery(
-//                    "SELECT * FROM employees LIMIT 5"
-//
-
-//            ); // YAHA MERE RESULT SET MAI JO QUERY KA REPLY AAEGA SQL SE VO STORE HO JAEGA
-
-
-            System.out.println(employees.size());
-
-
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                String json = mapper.writerWithDefaultPrettyPrinter()
-                        .writeValueAsString(employees);
-                System.out.println(json);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-
-//ResultSet temporary hai. Jaise hi:
-//con.close();
-//Ya program end. //ResultSet khatam.
-//Data kahan rakhenge?
-//Isliye hum ResultSet se data nikal ke object m dalenge ek
-
-
-//            System.out.println("Connection Created");
-//            Thread.sleep(30000);
-//            con.close();
-//            System.out.println("Connection Closed");
-
-        System.out.println(con);
-        }
-
-        catch(SQLException e){
-            e.printStackTrace();
-        }
-
+        return DBHandler.deleteEmployee(query);
     }
 }
