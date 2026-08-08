@@ -35,10 +35,16 @@ public class QueryBuilder {
         return String.format("INSERT INTO %s (%s) VALUES (%s)", tableName, columns, placeholders);
     }
 
-    // UPDATE — WHERE missing ho toh poori table update ho jaegi, isliye error
-    public static String buildUpdateQuery(String tableName, LinkedHashMap<?, ?> data, String whereColumn, Object whereValue) {
-        if (whereColumn == null || whereColumn.isBlank()) {
+    // UPDATE — ek ya multiple WHERE, conditions AND ya OR se judengi (caller batata hai kaunsa)
+    // WHERE missing ho toh poori table update ho jaegi, isliye error
+    public static String buildUpdateQuery(String tableName, LinkedHashMap<?, ?> data, LinkedHashMap<String, Object> whereConditions, String whereOperator) {
+        if (whereConditions == null || whereConditions.isEmpty()) {
             throw new IllegalArgumentException("[ERROR] UPDATE query mein WHERE  mandatory hai. Bina WHERE ke poori table update ho jaegi.");
+        }
+
+        // sirf AND ya OR chalega, kuch aur daala toh ni  hoga
+        if (whereOperator == null || (!whereOperator.equalsIgnoreCase("AND") && !whereOperator.equalsIgnoreCase("OR"))) {
+            throw new IllegalArgumentException("[ERROR] WHERE operator sirf AND ya OR ho sakta hai. Mila: " + whereOperator);
         }
 
         StringJoiner setPairs = new StringJoiner(", ");
@@ -56,14 +62,17 @@ public class QueryBuilder {
         }
 
         //number hai toh bina quote, warna quote ke saath
-        String whereVal;
-        if (whereValue instanceof Number) {
-            whereVal = whereValue.toString();
-        } else {
-            whereVal = "'" + whereValue.toString() + "'";
+        StringJoiner whereClause = new StringJoiner(" " + whereOperator.toUpperCase() + " ");
+        for (String key : whereConditions.keySet()) {
+            Object whereValue = whereConditions.get(key);
+            if (whereValue instanceof Number) {
+                whereClause.add(key + " = " + whereValue.toString());
+            } else {
+                whereClause.add(key + " = '" + whereValue.toString() + "'");
+            }
         }
 
-        return String.format("UPDATE %s SET %s WHERE %s = %s", tableName, setPairs, whereColumn, whereVal);
+        return String.format("UPDATE %s SET %s WHERE %s", tableName, setPairs, whereClause);
     }
 
 //     DELETE — WHERE missing ho toh poori table delete ho jaegi, isliye error

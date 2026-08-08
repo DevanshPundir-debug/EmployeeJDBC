@@ -147,7 +147,17 @@ public class HttpServerMain {
 
                         case "GET":
 
-                            response = Main.getEmployeesAsJson();
+                            String getQuery = exchange.getRequestURI().getQuery();
+
+                            Integer limit = null;
+
+                            // /employees?limit=5 — limit na ho toh saara data
+                            if (getQuery != null && getQuery.startsWith("limit=")) {
+
+                                limit = Integer.parseInt(getQuery.substring(6));
+                            }
+
+                            response = Main.getEmployeesAsJson(limit);
                             break;
 
                         case "POST":
@@ -159,25 +169,10 @@ public class HttpServerMain {
 
                         case "PUT":
 
+                            // ab id URL mein nahi, body ke "where" mein aati hai
                             String updateJson = new String(exchange.getRequestBody().readAllBytes());
 
-                            String updateQuery = exchange.getRequestURI().getQuery();
-
-                            if (updateQuery == null || !updateQuery.startsWith("id=")) {
-
-                                response = "{\"error\":\"Please provide employee id in URL. Example: /employees?id=10001\"}";
-
-                                exchange.sendResponseHeaders(400, response.getBytes().length);
-
-                                OutputStream os = exchange.getResponseBody();
-                                os.write(response.getBytes());
-                                os.close();
-                                return;
-                            }
-
-                            int updateId = Integer.parseInt(updateQuery.substring(3));
-
-                            response = Main.updateEmployee(updateJson, updateId);
+                            response = Main.updateEmployee(updateJson);
                             break;
 
                         case "DELETE":

@@ -3,14 +3,28 @@ package org.example;
 import com.google.gson.Gson;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Main {
 
 
     // GET ALL EMPLOYEES
-    public static String getEmployeesAsJson() throws Exception {
+//    public static String getEmployeesAsJson() throws Exception {
+//
+//        String query = QueryBuilder.buildSelectAllQuery("employees");
+//        System.out.println("Select Query: " + query);
+//        return DBHandler.getEmployees(query);
+//    }
 
-        String query = QueryBuilder.buildSelectAllQuery("employees");
+    // GET EMPLOYEES
+    public static String getEmployeesAsJson(Integer limit) throws Exception {
+
+        String query = QueryBuilder.buildSelectQuery("employees", null, null);
+
+        if (limit != null) {
+            query = query + " LIMIT " + limit;
+        }
+
         System.out.println("Select Query: " + query);
         return DBHandler.getEmployees(query);
     }
@@ -34,23 +48,42 @@ public class Main {
         return DBHandler.insertEmployee(query);
     }
 
-    // UPDATE
-    public static String updateEmployee(String json, int empNo) throws Exception {
+    // UPDATE — body mein data (kya update karna hai), where (kis row par) aur optional operator (AND/OR)
+    public static String updateEmployee(String json) throws Exception {
 
         Gson gson = new Gson();
 
-        LinkedHashMap<String, Object> map =
+        LinkedHashMap<String, Object> body =
                 gson.fromJson(json, LinkedHashMap.class);
 
         System.out.println("Received JSON:");
-        System.out.println(map);
+        System.out.println(body);
+
+        // gson nested object ko LinkedTreeMap banata hai, isliye Map mein le kar copy kar rahe hain
+        Map<String, Object> rawData = (Map<String, Object>) body.get("data");
+        Map<String, Object> rawWhere = (Map<String, Object>) body.get("where");
+
+        if (rawData == null || rawData.isEmpty()) {
+            throw new IllegalArgumentException("[ERROR] Body mein 'data' mandatory hai. Example: {\"data\":{...}, \"where\":{...}}");
+        }
+
+        LinkedHashMap<String, Object> data = new LinkedHashMap<>(rawData);
+
+        LinkedHashMap<String, Object> where = new LinkedHashMap<>();
+        if (rawWhere != null) {
+            where.putAll(rawWhere);
+        }
+
+        // body mein operator ni  dera mai  toh and
+        Object rawOperator = body.get("operator");
+        String operator = (rawOperator == null) ? "AND" : rawOperator.toString();
 
         String query =
                 QueryBuilder.buildUpdateQuery(
                         "employees",
-                        map,
-                        "emp_no",
-                        empNo
+                        data,
+                        where,
+                        operator
                 );
 
         System.out.println("Update Query: " + query);
