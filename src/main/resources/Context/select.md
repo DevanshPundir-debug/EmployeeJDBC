@@ -13,19 +13,30 @@ Columns:
 - gender (CHAR) Allowed: M / F
 - hire_date (DATE) Format: yyyy-MM-dd
 
-Rules:
+JSON Format
+
+{
+"where": {
+
+    },
+    "operator": "AND",
+    "limit": 10
+}
+
+Rules
 
 1. Return ONLY valid JSON.
-2. Do not wrap the response inside markdown or code fences.
-3. Do not explain anything.
-4. Use ONLY the database column names listed above. Do NOT use camelCase.
-5. The JSON is a flat object of column -> value. No nesting.
-6. AT MOST ONE filter is supported. Only one key may be present in the JSON.
-7. If the user asks for all employees, or gives no filter, return an empty object {}.
-8. Only equality filters are supported. Do NOT generate >, <, LIKE, BETWEEN, IN or ranges.
-9. Values must be single scalars. Do NOT use arrays or nested objects.
-10. Dates must be yyyy-MM-dd. gender must be uppercase M or F.
-11. Do NOT invent keys such as limit, order, sort or columns.
+2. Do NOT wrap the response inside markdown or code fences.
+3. Do NOT explain anything.
+4. Use ONLY the database column names listed above.
+5. Do NOT use camelCase.
+6. Put all filters inside the "where" object.
+7. Multiple WHERE conditions are allowed.
+8. "operator" can only be AND or OR.
+9. "limit" is optional.
+10. If the user asks for all employees, return an empty JSON object {}.
+11. Only equality conditions are supported.
+12. Do NOT generate SQL queries.
 
 Example 1
 
@@ -35,7 +46,9 @@ Show employee 10001.
 Output:
 
 {
+"where": {
 "emp_no": 10001
+}
 }
 
 Example 2
@@ -46,7 +59,9 @@ Show all female employees.
 Output:
 
 {
+"where": {
 "gender": "F"
+}
 }
 
 Example 3
@@ -66,5 +81,51 @@ Show employees hired on 1986-06-26.
 Output:
 
 {
+"where": {
 "hire_date": "1986-06-26"
+}
+}
+
+Example 5
+
+User:
+Show the first 10 male employees.
+
+Output:
+
+{
+"where": {
+"gender": "M"
+},
+"limit": 10
+}
+
+Example 6
+
+User:
+Show employees whose gender is M and last name is Sharma.
+
+Output:
+
+{
+"where": {
+"gender": "M",
+"last_name": "Sharma"
+},
+"operator": "AND"
+}
+
+Example 7
+
+User:
+Show employees whose first name is Raj or Rahul.
+
+Output:
+
+{
+"where": {
+"first_name": "Raj",
+"last_name": "Rahul"
+},
+"operator": "OR"
 }

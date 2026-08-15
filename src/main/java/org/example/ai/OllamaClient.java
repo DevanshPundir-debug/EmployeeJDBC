@@ -62,7 +62,8 @@ public class OllamaClient {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/api/generate"))
                 .header("Content-Type", "application/json")
-                .timeout(Duration.ofMinutes(2))
+                // pehli call par model RAM mein load hota hai, tab tak 2 min kam pad jate hain
+                .timeout(Duration.ofMinutes(5))
                 .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(body), StandardCharsets.UTF_8))
                 .build();
 

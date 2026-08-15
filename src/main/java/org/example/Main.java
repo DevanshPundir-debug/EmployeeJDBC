@@ -29,6 +29,58 @@ public class Main {
         return DBHandler.getEmployees(query);
     }
 
+
+    public static String getEmployees(String json) throws Exception {
+
+        Gson gson = new Gson();
+
+        LinkedHashMap<String, Object> body =
+                gson.fromJson(json, LinkedHashMap.class);
+
+        Map<String, Object> rawWhere =
+                (Map<String, Object>) body.get("where");
+
+        LinkedHashMap<String, Object> where =
+                new LinkedHashMap<>();
+
+        if (rawWhere != null) {
+
+            where.putAll(rawWhere);
+
+        }
+
+        Object rawOperator = body.get("operator");
+
+        String operator =
+                rawOperator == null ? "AND" : rawOperator.toString();
+
+        Integer limit = null;
+
+        Object rawLimit = body.get("limit");
+
+        if (rawLimit instanceof Number) {
+
+            limit = ((Number) rawLimit).intValue();
+
+        }
+
+        String query =
+                QueryBuilder.buildSelectQuery(
+                        "employees",
+                        where,
+                        operator,
+                        limit
+                );
+
+        System.out.println("Select Query: " + query);
+
+        return DBHandler.getEmployees(query);
+
+    }
+
+
+
+
     // INSERT
     public static String insertEmployee(String json) throws Exception {
 
@@ -92,17 +144,45 @@ public class Main {
     }
 
     // DELETE
-    public static String deleteEmployee(int empNo) throws Exception {
+//    public static String deleteEmployee(int empNo) throws Exception {
+//
+//        String query =
+//                QueryBuilder.buildDeleteQuery(
+//                        "employees",
+//                        "emp_no",
+//                        empNo
+//                );
+//
+//        System.out.println("Delete Query: " + query);
+//
+//        return DBHandler.deleteEmployee(query);
+//    }
+
+    public static String deleteEmployee(String json) throws Exception {
+
+        Gson gson = new Gson();
+
+        LinkedHashMap<String, Object> body =
+                gson.fromJson(json, LinkedHashMap.class);
+
+        Object empNo = body.get("emp_no");
+
+        if (empNo == null) {
+            throw new IllegalArgumentException("emp_no is required");
+        }
 
         String query =
                 QueryBuilder.buildDeleteQuery(
                         "employees",
                         "emp_no",
-                        empNo
+                        ((Number) empNo).intValue()
                 );
 
         System.out.println("Delete Query: " + query);
 
         return DBHandler.deleteEmployee(query);
     }
+
+
+
 }

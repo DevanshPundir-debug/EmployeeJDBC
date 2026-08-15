@@ -108,6 +108,69 @@ public class QueryBuilder {
         return String.format("SELECT * FROM %s WHERE %s = %s", tableName, whereColumn, whereVal);
     }
 
+
+
+    public static String buildSelectQuery(
+            String tableName,
+            LinkedHashMap<String, Object> whereConditions,
+            String whereOperator,
+            Integer limit
+    ) {
+
+        StringBuilder query = new StringBuilder("SELECT * FROM " + tableName);
+
+        if (whereConditions != null && !whereConditions.isEmpty()) {
+
+            if (whereOperator == null ||
+                    (!whereOperator.equalsIgnoreCase("AND")
+                            && !whereOperator.equalsIgnoreCase("OR"))) {
+
+                whereOperator = "AND";
+            }
+
+            StringJoiner whereClause =
+                    new StringJoiner(" " + whereOperator.toUpperCase() + " ");
+
+            for (String key : whereConditions.keySet()) {
+
+                Object value = whereConditions.get(key);
+
+                if (value == null) {
+
+                    whereClause.add(key + " IS NULL");
+
+                }
+
+                else if (value instanceof Number) {
+
+                    whereClause.add(key + " = " + value);
+
+                }
+
+                else {
+
+                    whereClause.add(key + " = '" + value + "'");
+
+                }
+
+            }
+
+            query.append(" WHERE ").append(whereClause);
+
+        }
+
+        if (limit != null && limit > 0) {
+
+            query.append(" LIMIT ").append(limit);
+
+        }
+
+        return query.toString();
+
+    }
+
+
+
     public static String buildSelectAllQuery(String tableName) {
         return String.format("SELECT * FROM %s", tableName);
 

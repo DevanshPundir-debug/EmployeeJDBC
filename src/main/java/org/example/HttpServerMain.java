@@ -3,10 +3,12 @@ package org.example;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import org.example.ai.AIController;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 
 //import static org.example.DBHandler.password;
 //import static org.example.DBHandler.username;
@@ -17,6 +19,9 @@ import java.util.Map;
 public class HttpServerMain {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    // ek hi instance, taki andar ka HttpClient har request par dobara na bane
+    private static final AIController aiController = new AIController();
 
     public static void main(String[] args) throws Exception {
 
@@ -191,10 +196,14 @@ public class HttpServerMain {
                                 return;
                             }
 
-                            int deleteId = Integer.parseInt(deleteQuery.substring(3));
+//                            int deleteId = Integer.parseInt(deleteQuery.substring(3));
+//
+//                            response = Main.deleteEmployee(deleteId);
+//                            break;
 
-                            response = Main.deleteEmployee(deleteId);
-                            break;
+                            String deleteJson = new String(exchange.getRequestBody().readAllBytes());
+
+                            response = Main.deleteEmployee(deleteJson);
 
                         default:
 
@@ -235,9 +244,65 @@ public class HttpServerMain {
 
         });
 
+        // English request andar, wahi JSON bahar jo pehle khud body mein likhna padta tha
+        server.createContext("/ai", (HttpExchange exchange) -> {
+
+            try {
+
+                if (!exchange.getRequestMethod().equals("POST")) {
+
+                    sendResponse(exchange, 405, errorJson("Use POST for /ai"));
+                    return;
+                }
+
+                String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
+
+                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+
+                    sendResponse(exchange, 401,
+                            errorJson("Missing or invalid Authorization header. Use: Bearer <token>"));
+                    return;
+                }
+
+                if (!TokenManager.isValidToken(authHeader.substring(7).trim())) {
+
+                    sendResponse(exchange, 401, errorJson("Invalid token"));
+                    return;
+                }
+
+                String body = new String(
+                        exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+
+                sendResponse(exchange, 200, aiController.handle(body));
+
+            } catch (IllegalArgumentException e) {
+
+                // user ki body ya query adhuri hai, uska galti batana hai
+                sendResponse(exchange, 400, errorJson(e.getMessage()));
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+
+                sendResponse(exchange, 500, errorJson(e.getMessage()));
+            }
+        });
+
         server.setExecutor(null);
 
         server.start();
+    }
+
+    // messages mein quotes hote hain, isliye haath se JSON banane ke bajay mapper se
+    private static String errorJson(String message) {
+
+        try {
+            return objectMapper.writeValueAsString(Map.of("error", String.valueOf(message)));
+
+        } catch (Exception e) {
+
+            return "{\"error\":\"Something went wrong\"}";
+        }
     }
 
     // ek hi jagah se response bhejne ke liye, warna har baar 4 line likhni padti hai
