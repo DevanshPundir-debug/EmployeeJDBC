@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.Base64;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 public class HttpServerMain {
 
@@ -285,10 +286,16 @@ public class HttpServerMain {
                 e.printStackTrace();
 
                 sendResponse(exchange, 500, errorJson(e.getMessage()));
+
+            } catch (Throwable e) {
+
+                e.printStackTrace();
+
+                sendResponse(exchange, 500, errorJson(e.getMessage()));
             }
         });
 
-        server.setExecutor(null);
+        server.setExecutor(Executors.newFixedThreadPool(10));
 
         server.start();
     }

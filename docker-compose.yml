@@ -1,0 +1,48 @@
+services:
+
+  app:
+    build: .
+    image: employee-jdbc
+
+    container_name: employee-app
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/employees
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: newpassword123
+
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+
+    container_name: employee-mysql
+
+    restart: always
+
+    environment:
+      MYSQL_ROOT_PASSWORD: newpassword123
+      MYSQL_DATABASE: employees
+
+    ports:
+      - "3307:3306"
+
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+
+volumes:
+  mysql-data:
+  ollama-data:

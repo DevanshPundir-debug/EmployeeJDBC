@@ -55,7 +55,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>org.example.EmployeeJdbcApplication</mainClass>
+                    <mainClass>org.example.HttpServerMain</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.example</groupId>

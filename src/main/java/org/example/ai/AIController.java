@@ -110,6 +110,11 @@ public class AIController {
         String aiOutput;
 
         try {
+            if (!ollamaClient.isAvailable()) {
+                throw new IllegalStateException(
+                        "Ollama is not reachable. Make sure Ollama is running and reachable from Docker.");
+            }
+
             String context = contextManager.getContext(operation);
             String prompt = promptBuilder.buildPrompt(context, query);
 

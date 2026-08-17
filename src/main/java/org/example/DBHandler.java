@@ -1,7 +1,6 @@
 package org.example;
 
 import java.sql.*;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.ResultSetMetaData;
@@ -9,25 +8,56 @@ import java.util.ArrayList;
 
 public class DBHandler {
 
-    static String url = "jdbc:mysql://localhost:3306/employees"; // database ka url represent kregi baad m
-    static String username = "root";
-    static String password = "newpassword123";
+    static String url = getConfig("SPRING_DATASOURCE_URL", "jdbc:mysql://localhost:3306/employees");
+    static String username = getConfig("SPRING_DATASOURCE_USERNAME", "root");
+    static String password = getConfig("SPRING_DATASOURCE_PASSWORD", "newpassword123");
 
     static Connection con;
     static Statement stmt;
+
+    private static String getConfig(String key, String defaultValue) {
+        String value = System.getenv(key);
+
+        if (value == null || value.isBlank()) {
+            value = System.getProperty(key);
+        }
+
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+
+        return value;
+    }
 
     // field pe direct getConnection nahi likh sakte kyunki SQLException checked hai,
     // isliye static block mein try/catch ke saath initialize karna padta hai
     static {
         try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
             con = DriverManager.getConnection(url, username, password);
             // ye line kehri hai deivermanager ek connection build kro url ye hai url se db ka address mila
             // user and pass ye hai , and connection build ho jae toh ek con object return kr dena
 
             stmt = con.createStatement(); //con  yaha ek statement object bana do
-        } catch (SQLException e) {
+
+            createEmployeesTableIfMissing();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static void createEmployeesTableIfMissing() throws SQLException {
+        stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS employees (
+                    emp_no INT PRIMARY KEY,
+                    birth_date DATE NOT NULL,
+                    first_name VARCHAR(50) NOT NULL,
+                    last_name VARCHAR(50) NOT NULL,
+                    gender CHAR(1) NOT NULL,
+                    hire_date DATE NOT NULL
+                )
+                """);
     }
 
     public static ResultSet selectEmployees(String query) throws SQLException {
